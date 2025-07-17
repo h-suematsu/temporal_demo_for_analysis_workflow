@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Run pytest before pushing
+echo "Running tests..."
+uv run pytest
+
+# If tests fail, prevent push
+if [ $? -ne 0 ]; then
+    echo "Tests failed! Push aborted."
+    exit 1
+fi
+
+echo "All tests passed. Proceeding with push."
+exit 0

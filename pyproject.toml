@@ -1,0 +1,132 @@
+[project]
+name = "temporal-demo-for-analysis-workflow"
+version = "0.1.0"
+description = "A proof of concept to evaluate whether Temporal can meet the requirements for replacing dbt in a data analysis workflow"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "temporalio>=1.5.0",
+    "google-cloud-pubsub>=2.18.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.5.0",
+    "pre-commit>=3.5.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["workflows", "script", "test"]
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+  #"ALL", # 全てのルールを有効にする
+  # Pyflakes
+  "F",
+  # pycodestyle
+  "E",
+  "W",
+  # mccabe
+  "C90",
+  # flake8-builtins
+  "A",
+  # flake8-bugbear
+  "B",
+  # flake8-comprehensions
+  "C4",
+  # flake8-use-pathlib
+  "PTH",
+  # flake8-simplify
+  "SIM",
+  # flake8-print
+  "T20",
+  # pep8-naming
+  "N",
+  # pyupgrade
+  "UP",
+  # pygrep-hooks
+  "PGH",
+  # Ruff-specific rules
+  "RUF",
+  # flake8-annotations
+  #flake8-async
+  #"ASYNC",
+  # flake8-boolean-trap
+  "FBT",
+  # flake8-commas
+  "COM",
+  # flake8-datetimez
+  "DTZ",
+  # flake8-type-checking
+  "TCH",
+  # flake8-todos
+  #"TD",
+  # eradicate
+  "ERA",
+  # Pylint
+  "PL",
+  # flake8-pie
+  "PIE",
+  # flake8-pyi
+  "PYI",
+  # flake8-pytest-style
+  "PT",
+  "ARG",  # unused argment
+  "PERF", # perflint
+]
+ignore = [
+  "E501",
+  "RUF100",
+  "ERA001",
+  "D",
+  "TRY003",
+  "INP",
+  "ANN",
+  "TD",
+  "FIX",
+  # disable COM812 for linter rule because formatter fixes COM812 (missing trailing comma)
+  # and the behavior can conflict with linter
+  # see https://github.com/astral-sh/ruff/issues/9216 for the details
+  "COM812",
+]
+#fix-only = true
+
+[tool.ruff.lint.per-file-ignores]
+"**/tools/**" = ["PGH001", "ANN"]
+"**/test*/**" = ["ANN", "PLR2004", "PIE804"]
+"**/integration/**" = ["ANN", "PLR2004"]
+"**/tasks.py" = ["ANN", "ARG001"]
+# ignore "print" check in alltext_ocr since the code is not actively developed
+"src/python/alltext_ocr/**" = ["T201"]
+
+[tool.ruff.lint.pylint]
+max-returns = 2
+max-statements = 30
+max-branches = 6
+max-args = 5
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = [
+  "ocr",
+  "src",
+  "tools",
+  "dev_tools",
+  "ci_tools",
+  "attribute_ocr",
+  "alltext_ocr",
+  "curia",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["test"]

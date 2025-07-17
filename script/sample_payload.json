@@ -1,0 +1,10 @@
+{
+  "job_id": "job-123456",
+  "tenant_id": "tenant-001",
+  "analysis_type": "type_a",
+  "data": {
+    "value": 42,
+    "source": "sample",
+    "timestamp": "2023-07-17T12:34:56Z"
+  }
+}

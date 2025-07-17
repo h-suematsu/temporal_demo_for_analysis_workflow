@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "./.venv",
+  "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "ruff.enable": true,
+  "ruff.organizeImports": false,
+  "ruff.lint.enable": true,
+}
