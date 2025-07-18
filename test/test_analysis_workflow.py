@@ -28,13 +28,22 @@ async def _send_signals_and_get_result(
 
     # すべてのリクエストオブジェクトを作成
     request_a = AnalysisRequest(
-        job_id=job_id, tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_A
+        job_id=job_id,
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_A,
+        data={"value": 42, "source": "test"},
     )
     request_b = AnalysisRequest(
-        job_id=job_id, tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_B
+        job_id=job_id,
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_B,
+        data={"value": 100, "source": "test"},
     )
     request_c = AnalysisRequest(
-        job_id=job_id, tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_C
+        job_id=job_id,
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_C,
+        data={"value": 200, "source": "test"},
     )
 
     # すべてのシグナルを並行して送信
@@ -135,7 +144,10 @@ async def test_analysis_workflow_partial_signals(worker_info):
 
     # 一部の解析タイプのシグナルのみを送信
     request = AnalysisRequest(
-        job_id=job_id, tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_A
+        job_id=job_id,
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_A,
+        data={"value": 42, "source": "test"},
     )
 
     # シグナルを送信
@@ -170,13 +182,22 @@ async def test_analysis_workflow_wrong_job_tenant(worker_info):
 
     # すべてのリクエストを一度に作成
     wrong_job_request = AnalysisRequest(
-        job_id="wrong-job-id", tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_A
+        job_id="wrong-job-id",
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_A,
+        data={"value": 42, "source": "test"},
     )
     wrong_tenant_request = AnalysisRequest(
-        job_id=job_id, tenant_id="wrong-tenant-id", analysis_type=AnalysisType.TYPE_B
+        job_id=job_id,
+        tenant_id="wrong-tenant-id",
+        analysis_type=AnalysisType.TYPE_B,
+        data={"value": 100, "source": "test"},
     )
     correct_request = AnalysisRequest(
-        job_id=job_id, tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_C
+        job_id=job_id,
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_C,
+        data={"value": 200, "source": "test"},
     )
 
     # すべてのシグナルを並行して送信

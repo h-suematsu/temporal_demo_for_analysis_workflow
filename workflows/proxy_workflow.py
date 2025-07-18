@@ -51,9 +51,10 @@ class ProxyWorkflow:
             logging.error(f"Error in ProxyWorkflow: {e!s}")
             raise ApplicationError(f"ProxyWorkflow failed: {e!s}") from e
 
-    def _extract_request_from_payload(self, payload: dict[str, Any]) -> AnalysisRequest:
+    def _extract_request_from_payload(self, payload: dict[str, Any]) -> AnalysisRequest:  # noqa: PLR0912
         """
         PubSubペイロードからリクエスト情報を抽出する
+        Pydanticのモデルを使用してバリデーションを行うこともできそう
 
         Args:
             payload: PubSubメッセージのペイロード
@@ -76,6 +77,9 @@ class ProxyWorkflow:
             if "analysis_type" not in payload:
                 raise ValueError("analysis_type is missing in payload")
 
+            if "data" not in payload:
+                raise ValueError("data is missing in payload")
+
             # analysis_typeが有効な値であることを確認
             analysis_type_str = payload["analysis_type"]
             try:
@@ -87,6 +91,7 @@ class ProxyWorkflow:
                 job_id=payload["job_id"],
                 tenant_id=payload["tenant_id"],
                 analysis_type=analysis_type,
+                data=payload["data"],
             )
 
         except Exception as e:

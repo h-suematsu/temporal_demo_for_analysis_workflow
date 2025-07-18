@@ -9,7 +9,7 @@ from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 from workflows.activities.analysis_activities import AnalysisActivities
-from workflows.models import AnalysisType
+from workflows.models import AnalysisRequest, AnalysisType
 
 
 class TestAnalysisActivities:
@@ -44,8 +44,18 @@ class TestAnalysisActivities:
         job_id = str(uuid.uuid4())
         tenant_id = "test-tenant"
         analysis_data = {
-            AnalysisType.TYPE_A: {"value": 42, "source": "test"},
-            AnalysisType.TYPE_B: {"value": 100, "source": "test"},
+            AnalysisType.TYPE_A: AnalysisRequest(
+                job_id=job_id,
+                tenant_id=tenant_id,
+                analysis_type=AnalysisType.TYPE_A,
+                data={"value": 42, "source": "test"},
+            ),
+            AnalysisType.TYPE_B: AnalysisRequest(
+                job_id=job_id,
+                tenant_id=tenant_id,
+                analysis_type=AnalysisType.TYPE_B,
+                data={"value": 100, "source": "test"},
+            ),
         }
 
         # アクティビティを実行
@@ -54,13 +64,10 @@ class TestAnalysisActivities:
         )
 
         # 結果の検証
-        assert result is not None
-        assert AnalysisType.TYPE_A.value in result
-        assert AnalysisType.TYPE_B.value in result
-        assert result[AnalysisType.TYPE_A.value]["processed"] is True
-        assert result[AnalysisType.TYPE_B.value]["processed"] is True
-        assert "timestamp" in result[AnalysisType.TYPE_A.value]
-        assert "timestamp" in result[AnalysisType.TYPE_B.value]
+        assert result == {
+            AnalysisType.TYPE_A.value: {"value": 42, "source": "test"},
+            AnalysisType.TYPE_B.value: {"value": 100, "source": "test"},
+        }
 
     @pytest.mark.asyncio
     async def test_save_results(self, activities, monkeypatch):
@@ -77,8 +84,8 @@ class TestAnalysisActivities:
         job_id = str(uuid.uuid4())
         tenant_id = "test-tenant"
         results = {
-            "type_a": {"value": 42, "processed": True},
-            "type_b": {"value": 100, "processed": True},
+            AnalysisType.TYPE_A.value: {"value": 42, "source": "test"},
+            AnalysisType.TYPE_B.value: {"value": 100, "source": "test"},
         }
 
         # アクティビティを実行
@@ -94,11 +101,8 @@ class TestAnalysisActivities:
             file_data = json.load(f)
             assert file_data["job_id"] == job_id
             assert file_data["tenant_id"] == tenant_id
-            assert "results" in file_data
-            assert "type_a" in file_data["results"]
-            assert "type_b" in file_data["results"]
-            assert file_data["results"]["type_a"]["processed"] is True
-            assert file_data["results"]["type_b"]["processed"] is True
+            assert file_data["results"] == results
+            assert "completed_at" in file_data
 
     @pytest.mark.asyncio
     async def test_save_results_error(self, activities, monkeypatch):

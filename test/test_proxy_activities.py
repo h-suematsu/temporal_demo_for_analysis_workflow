@@ -20,7 +20,10 @@ async def test_signal_or_start_analysis_workflow_new_workflow(worker_info):
     tenant_id = "test-tenant"
     workflow_id = f"analysis-test-{tenant_id}-{job_id}"
     request = AnalysisRequest(
-        job_id=job_id, tenant_id=tenant_id, analysis_type=AnalysisType.TYPE_A
+        job_id=job_id,
+        tenant_id=tenant_id,
+        analysis_type=AnalysisType.TYPE_A,
+        data={"value": 42, "source": "test"},
     )
 
     # モックを設定
@@ -61,7 +64,10 @@ async def test_signal_or_start_analysis_workflow_all_types(worker_info):
         tenant_id = "test-tenant"
         workflow_id = f"analysis-{analysis_type.value}-{job_id}"
         request = AnalysisRequest(
-            job_id=job_id, tenant_id=tenant_id, analysis_type=analysis_type
+            job_id=job_id,
+            tenant_id=tenant_id,
+            analysis_type=analysis_type,
+            data={"value": 42, "source": "test"},
         )
 
         # モックを設定

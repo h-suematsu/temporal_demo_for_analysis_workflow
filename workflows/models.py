@@ -14,6 +14,7 @@ class AnalysisRequest:
     job_id: str
     tenant_id: str
     analysis_type: str
+    data: dict[str, Any]
 
 
 @dataclass

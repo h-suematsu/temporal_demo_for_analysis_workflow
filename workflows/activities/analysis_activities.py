@@ -7,7 +7,7 @@ from typing import Any
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
-from workflows.models import AnalysisType
+from workflows.models import AnalysisRequest
 
 
 class AnalysisActivities:
@@ -15,40 +15,14 @@ class AnalysisActivities:
 
     def __init__(self, output_dir: str = "./output"):
         self.output_dir = output_dir
-        # 出力ディレクトリが存在しない場合は作成
-        output_path = Path(output_dir)
-        if not output_path.exists():
-            output_path.mkdir(parents=True)
-
-    def _get_current_timestamp(self) -> str:
-        """現在のタイムスタンプを取得するヘルパーメソッド
-
-        Returns:
-            str: ISO形式のタイムスタンプ文字列
-        """
-        timestamp = None
-        try:
-            activity_info = activity.info()
-            if hasattr(activity_info, "start_time"):
-                timestamp = activity_info.start_time.isoformat()
-            elif hasattr(activity_info, "started_time"):
-                timestamp = activity_info.started_time.isoformat()
-        except Exception:
-            pass
-
-        # タイムスタンプが取得できなかった場合は現在時刻を使用
-        if not timestamp:
-            timestamp = str(datetime.now(tz=UTC))
-
-        return timestamp
 
     @activity.defn
     async def process_analysis_data(
         self,
         job_id: str,
         tenant_id: str,
-        analysis_data: dict[str, dict[str, Any]],
-    ) -> dict[str, Any]:
+        analysis_data: dict[str, AnalysisRequest],
+    ) -> dict[str, dict[str, Any]]:
         """
         解析データを処理するアクティビティ
 
@@ -67,36 +41,10 @@ class AnalysisActivities:
         try:
             # 実際のアプリケーションでは、ここでデータ処理ロジックを実装
             # 例: データ変換、集計、結合などの処理
-
-            results = {}
-            for analysis_type_str, data in analysis_data.items():
-                # 文字列の場合は AnalysisType に変換
-                try:
-                    if isinstance(analysis_type_str, str):
-                        analysis_type = AnalysisType(analysis_type_str)
-                    else:
-                        # 文字列以外の場合はそのまま使用
-                        analysis_type = analysis_type_str
-                except ValueError:
-                    # 無効なanalysis_type_strの場合はそのまま文字列として使用
-                    analysis_type = analysis_type_str
-
-                # ここでは単純な例として、データに処理済みフラグを追加
-                processed_data = {
-                    **data,
-                    "processed": True,
-                    "timestamp": self._get_current_timestamp(),
-                }
-
-                # analysis_typeがEnumの場合はvalueを使用、そうでない場合は文字列化
-                key = (
-                    analysis_type.value
-                    if hasattr(analysis_type, "value")
-                    else str(analysis_type)
-                )
-                results[key] = processed_data
-
-            return results
+            return {
+                analysis_type: request.data
+                for analysis_type, request in analysis_data.items()
+            }
 
         except Exception as e:
             logging.error(f"Error processing analysis data: {e!s}")
@@ -104,7 +52,7 @@ class AnalysisActivities:
 
     @activity.defn
     async def save_results(
-        self, job_id: str, tenant_id: str, results: dict[str, Any]
+        self, job_id: str, tenant_id: str, results: dict[str, dict[str, Any]]
     ) -> str:
         """
         処理結果をファイルに保存するアクティビティ
@@ -125,7 +73,7 @@ class AnalysisActivities:
                 "job_id": job_id,
                 "tenant_id": tenant_id,
                 "results": results,
-                "completed_at": self._get_current_timestamp(),
+                "completed_at": datetime.now(tz=UTC).isoformat(),
             }
 
             # ファイル名を生成
