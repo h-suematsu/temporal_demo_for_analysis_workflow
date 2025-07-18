@@ -1,9 +1,13 @@
 import json
 import logging
+from datetime import timedelta
 from typing import Any
 
 from temporalio import workflow
 from temporalio.exceptions import ApplicationError
+
+with workflow.unsafe.imports_passed_through():
+    from workflows.proxy_activities import ProxyActivities
 
 from workflows.models import AnalysisRequest, AnalysisType, ProxyWorkflowInput
 
@@ -32,10 +36,14 @@ class ProxyWorkflow:
             # 同じjob_idとtenant_idの組み合わせに対して同じワークフローインスタンスを使用
             workflow_id = f"analysis-{request.tenant_id}-{request.job_id}"
 
-            # Analysis Workflowにシグナルを送信
-            await workflow.get_external_workflow_handle(workflow_id=workflow_id).signal(
-                "analysis_data_available", request
+            # Activityを使用してAnalysis Workflowのシグナル送信または起動を行う
+            # Activityの中でクライアントを生成してワークフローへのシグナル送信または起動を実行
+            result = await workflow.execute_activity(
+                ProxyActivities.signal_or_start_analysis_workflow,
+                args=[workflow_id, request],
+                start_to_close_timeout=timedelta(30),
             )
+            logging.info(result)
 
             logging.info(f"Signal sent to Analysis Workflow: {workflow_id}")
 

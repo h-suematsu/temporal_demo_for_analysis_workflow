@@ -13,14 +13,14 @@ class AnalysisType(str, Enum):
 class AnalysisRequest:
     job_id: str
     tenant_id: str
-    analysis_type: AnalysisType
+    analysis_type: str
 
 
 @dataclass
 class AnalysisResult:
     job_id: str
     tenant_id: str
-    analysis_type: AnalysisType
+    analysis_type: str
     data: dict[str, Any]
 
 

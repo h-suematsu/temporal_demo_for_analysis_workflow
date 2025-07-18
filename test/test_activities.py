@@ -1,15 +1,15 @@
 import json
 import tempfile
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
-from workflows import AnalysisType
 from workflows.activities import AnalysisActivities
+from workflows.models import AnalysisType
 
 
 class TestAnalysisActivities:

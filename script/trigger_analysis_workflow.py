@@ -10,12 +10,8 @@ from temporalio.client import Client
 # プロジェクトルートをパスに追加
 sys.path.append(str(Path(__file__).parent.parent))
 
-from workflows import (
-    AnalysisWorkflow,
-    AnalysisWorkflowInput,
-    AnalysisRequest,
-    AnalysisType,
-)
+from workflows.analysis_workflow import AnalysisWorkflow, AnalysisWorkflowInput
+from workflows.models import AnalysisRequest, AnalysisType
 
 
 async def main():

@@ -8,6 +8,7 @@ from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
 from workflows.activities import AnalysisActivities
+from workflows.proxy_activities import ProxyActivities
 
 
 # pytest.mark.workflowsマーカーを登録
@@ -36,13 +37,19 @@ async def temp_dir():
 
 
 @pytest_asyncio.fixture
-async def activities(temp_dir):
-    """アクティビティインスタンスのフィクスチャ"""
+async def analysis_activities(temp_dir):
+    """解析アクティビティインスタンスのフィクスチャ"""
     return AnalysisActivities(output_dir=temp_dir)
 
 
 @pytest_asyncio.fixture
-async def worker_info(client, activities, request):
+async def proxy_activities(client):
+    """プロキシアクティビティインスタンスのフィクスチャ"""
+    return ProxyActivities(client=client)
+
+
+@pytest_asyncio.fixture
+async def worker_info(client, analysis_activities, proxy_activities, request):
     """
     テスト用のワーカーを作成するフィクスチャ
 
@@ -64,8 +71,9 @@ async def worker_info(client, activities, request):
         task_queue="test-task-queue",
         workflows=workflows,
         activities=[
-            activities.process_analysis_data,
-            activities.save_results,
+            analysis_activities.process_analysis_data,
+            analysis_activities.save_results,
+            proxy_activities.signal_or_start_analysis_workflow,
         ],
     )
 
@@ -76,7 +84,7 @@ async def worker_info(client, activities, request):
     yield {
         "worker": worker,
         "task": worker_task,
-        "output_dir": activities.output_dir,
+        "output_dir": analysis_activities.output_dir,
         "client": client,
     }
 

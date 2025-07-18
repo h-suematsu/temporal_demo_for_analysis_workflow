@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import logging
@@ -11,13 +12,34 @@ from temporalio.client import Client
 # プロジェクトルートをパスに追加
 sys.path.append(str(Path(__file__).parent.parent))
 
-from workflows import ProxyWorkflow, ProxyWorkflowInput
+from workflows.models import AnalysisType
+from workflows.proxy_workflow import ProxyWorkflow, ProxyWorkflowInput
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="ProxyWorkflowをトリガーする")
+    # ペイロードファイルかコマンドライン引数
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-f", "--file", help="ペイロードファイルのパス")
+    # 個別パラメータ
+    parser.add_argument("--job-id", help="ジョブID")
+    parser.add_argument("--tenant-id", default="tenant-001", help="テナントID")
+    parser.add_argument(
+        "--analysis-type",
+        choices=[t.value for t in AnalysisType],
+        default="type_a",
+        help="解析タイプ",
+    )
+    return parser.parse_args()
 
 
 async def main():
     """
     ProxyWorkflowをトリガーする
     """
+    # 引数の解析
+    args = parse_args()
+
     # ロギングの設定
     logging.basicConfig(
         level=logging.INFO,
@@ -25,21 +47,23 @@ async def main():
         handlers=[logging.StreamHandler()],
     )
 
-    # コマンドライン引数からペイロードファイルを取得
-    if len(sys.argv) > 1:
-        payload_file = sys.argv[1]
-        with Path(payload_file).open() as f:
+    # ペイロードの作成
+    if args.file:
+        # ファイルからペイロードを取得
+        with Path(args.file).open() as f:
             payload = json.load(f)
     else:
-        # サンプルペイロードの作成
-        job_id = str(uuid.uuid4())
+        # 個別パラメータからペイロードを作成
+        job_id = args.job_id if args.job_id else str(uuid.uuid4())
         payload = {
             "job_id": job_id,
-            "tenant_id": "tenant-001",
-            "analysis_type": "type_a",
+            "tenant_id": args.tenant_id,
+            "analysis_type": args.analysis_type,
             "data": {"value": 42, "timestamp": "2023-07-17T12:34:56Z"},
         }
-        logging.info(f"Using sample payload with job_id: {job_id}")
+        logging.info(
+            f"Using job_id: {job_id}, tenant_id: {args.tenant_id}, analysis_type: {args.analysis_type}"
+        )
 
     # Temporal接続設定
     client = await Client.connect("localhost:7233")

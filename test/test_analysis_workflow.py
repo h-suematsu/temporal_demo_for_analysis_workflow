@@ -8,12 +8,8 @@ from typing import Any
 import pytest
 from temporalio.client import WorkflowExecutionStatus, WorkflowHandle
 
-from workflows import (
-    AnalysisRequest,
-    AnalysisType,
-    AnalysisWorkflow,
-    AnalysisWorkflowInput,
-)
+from workflows.analysis_workflow import AnalysisWorkflow
+from workflows.models import AnalysisRequest, AnalysisType, AnalysisWorkflowInput
 
 
 async def _send_signals_and_get_result(

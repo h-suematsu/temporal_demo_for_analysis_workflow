@@ -10,8 +10,10 @@ from temporalio.worker import Worker
 # プロジェクトルートをパスに追加
 sys.path.append(str(Path(__file__).parent.parent))
 
-from workflows import ProxyWorkflow, AnalysisWorkflow
 from workflows.activities import AnalysisActivities
+from workflows.proxy_activities import ProxyActivities
+from workflows.analysis_workflow import AnalysisWorkflow
+from workflows.proxy_workflow import ProxyWorkflow
 
 
 async def main():
@@ -35,7 +37,8 @@ async def main():
         output_path.mkdir(parents=True)
 
     # アクティビティインスタンスの作成
-    activities = AnalysisActivities(output_dir=output_dir)
+    analysis_activities = AnalysisActivities(output_dir=output_dir)
+    proxy_activities = ProxyActivities()
 
     # ワーカーの作成と起動
     worker = Worker(
@@ -43,8 +46,9 @@ async def main():
         task_queue="analysis-task-queue",
         workflows=[ProxyWorkflow, AnalysisWorkflow],
         activities=[
-            activities.process_analysis_data,
-            activities.save_results,
+            analysis_activities.process_analysis_data,
+            analysis_activities.save_results,
+            proxy_activities.signal_or_start_analysis_workflow,
         ],
     )
 

@@ -85,7 +85,7 @@ class AnalysisWorkflow:
                 await workflow.wait_condition(
                     lambda: set(self._pending_analysis_data.keys())
                     == required_analysis_types,
-                    timeout=timedelta(seconds=5),
+                    timeout=timedelta(seconds=600),
                 )
                 break
             except TimeoutError:
@@ -157,19 +157,15 @@ class AnalysisWorkflow:
         Args:
             request: 解析リクエスト情報
         """
-        if request.job_id != self._job_id or request.tenant_id != self._tenant_id:
+        if (
+            self._job_id is not None
+            and self._tenant_id is not None
+            and (request.job_id != self._job_id or request.tenant_id != self._tenant_id)
+        ):
             logging.warning(
                 f"Received data for different job/tenant. Expected job_id={self._job_id}, tenant_id={self._tenant_id}, "
                 f"got job_id={request.job_id}, tenant_id={request.tenant_id}"
             )
             return
 
-        logging.info(f"Received analysis data for type: {request.analysis_type}")
-
-        # Listの場合はtupleに変換してハッシュ可能にする
-        if isinstance(request.analysis_type, list):
-            analysis_type = tuple(request.analysis_type)
-        else:
-            analysis_type = request.analysis_type
-
-        self._pending_analysis_data[analysis_type] = request
+        self._pending_analysis_data[AnalysisType(request.analysis_type)] = request
