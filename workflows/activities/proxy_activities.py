@@ -12,6 +12,12 @@ class ProxyActivities:
     """プロキシワークフローで使用するアクティビティ"""
 
     def __init__(self, client=None):
+        """
+        アクティビティの初期化
+
+        Args:
+            client: Temporalクライアントインスタンス。Noneの場合は自動的にlocalhostに接続する。
+        """
         self.client = client
 
     @activity.defn

@@ -7,8 +7,8 @@ import pytest_asyncio
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
-from workflows.activities import AnalysisActivities
-from workflows.proxy_activities import ProxyActivities
+from workflows.activities.analysis_activities import AnalysisActivities
+from workflows.activities.proxy_activities import ProxyActivities
 
 
 # pytest.mark.workflowsマーカーを登録

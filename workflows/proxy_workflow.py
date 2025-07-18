@@ -7,7 +7,7 @@ from temporalio import workflow
 from temporalio.exceptions import ApplicationError
 
 with workflow.unsafe.imports_passed_through():
-    from workflows.proxy_activities import ProxyActivities
+    from workflows.activities.proxy_activities import ProxyActivities
 
 from workflows.models import AnalysisRequest, AnalysisType, ProxyWorkflowInput
 

@@ -10,8 +10,8 @@ from temporalio.worker import Worker
 # プロジェクトルートをパスに追加
 sys.path.append(str(Path(__file__).parent.parent))
 
-from workflows.activities import AnalysisActivities
-from workflows.proxy_activities import ProxyActivities
+from workflows.activities.analysis_activities import AnalysisActivities
+from workflows.activities.proxy_activities import ProxyActivities
 from workflows.analysis_workflow import AnalysisWorkflow
 from workflows.proxy_workflow import ProxyWorkflow
 

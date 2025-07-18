@@ -7,7 +7,7 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError, CancelledError
 
 with workflow.unsafe.imports_passed_through():
-    from workflows.activities import AnalysisActivities
+    from workflows.activities.analysis_activities import AnalysisActivities
     from workflows.models import AnalysisRequest, AnalysisType, AnalysisWorkflowInput
 
 
