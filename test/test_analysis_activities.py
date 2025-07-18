@@ -8,7 +8,7 @@ import pytest
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
-from workflows.activities import AnalysisActivities
+from workflows.activities.analysis_activities import AnalysisActivities
 from workflows.models import AnalysisType
 
 
