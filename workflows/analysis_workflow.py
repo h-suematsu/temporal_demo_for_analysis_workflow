@@ -66,7 +66,11 @@ class AnalysisWorkflow:
             raise ApplicationError(f"AnalysisWorkflow failed: {e!s}") from e
 
     async def _wait_for_analysis_data(self) -> None:
-        """必要なすべての解析データが揃うまで待機する"""
+        """必要なすべての解析データが揃うまで待機する
+
+        Raises:
+            ApplicationError: 必要なデータがタイムアウト内に揃わない場合
+        """
         # 必要なすべての解析タイプのデータが揃うまで待機
         required_analysis_types = set(AnalysisType)
 
@@ -77,23 +81,28 @@ class AnalysisWorkflow:
                 logging.info(
                     f"Waiting for analysis data. Received: {list(self._pending_analysis_data.keys())}"
                 )
-                logging.info(
-                    f"Still waiting for: {list(required_analysis_types - set(self._pending_analysis_data.keys()))}"
+                missing_types = list(
+                    required_analysis_types - set(self._pending_analysis_data.keys())
                 )
+                logging.info(f"Still waiting for: {missing_types}")
 
-                # シグナルを待機(5秒タイムアウト)
+                # シグナルを待機(10分タイムアウト)
                 await workflow.wait_condition(
                     lambda: set(self._pending_analysis_data.keys())
                     == required_analysis_types,
-                    timeout=timedelta(seconds=600),
+                    timeout=timedelta(minutes=10),  # 10分のタイムアウト
                 )
                 break
             except TimeoutError:
-                # タイムアウトした場合は、利用可能なデータで処理を継続
-                logging.warning(
-                    "Timeout waiting for all analysis data. Proceeding with available data."
+                # タイムアウトした場合はエラーを発生させる
+                missing_types = list(
+                    required_analysis_types - set(self._pending_analysis_data.keys())
                 )
-                break
+                error_message = (
+                    f"Timeout waiting for analysis data. Missing types: {missing_types}"
+                )
+                logging.error(error_message)
+                raise ApplicationError(error_message) from None
 
     def _prepare_analysis_data(self) -> dict[str, dict[str, Any]]:
         """解析データをアクティビティ用に整形する"""

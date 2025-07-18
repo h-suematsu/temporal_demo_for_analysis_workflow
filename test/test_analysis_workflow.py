@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from temporalio.client import WorkflowExecutionStatus, WorkflowHandle
+from temporalio.client import (
+    WorkflowExecutionStatus,
+    WorkflowFailureError,
+    WorkflowHandle,
+)
 
 from workflows.analysis_workflow import AnalysisWorkflow
 from workflows.models import AnalysisRequest, AnalysisType, AnalysisWorkflowInput
@@ -109,7 +113,7 @@ async def test_analysis_workflow_complete_flow(worker_info):
 @pytest.mark.workflows([AnalysisWorkflow])
 @pytest.mark.asyncio
 async def test_analysis_workflow_partial_signals(worker_info):
-    """一部のシグナルのみを受信した場合のテスト"""
+    """一部のシグナルのみを受信した場合のテスト - タイムアウトで失敗することを確認"""
     client = worker_info["client"]
 
     # テスト用のジョブIDとテナントID
@@ -123,7 +127,7 @@ async def test_analysis_workflow_partial_signals(worker_info):
         AnalysisWorkflowInput(job_id=job_id, tenant_id=tenant_id),
         id=workflow_id,
         task_queue="test-task-queue",
-        execution_timeout=timedelta(seconds=10),  # 短いタイムアウト
+        execution_timeout=timedelta(seconds=0.5),  # 短いタイムアウト
     )
 
     # ワークフロー起動後少し待機(ワークフローの初期化完了を待つ)
@@ -137,9 +141,8 @@ async def test_analysis_workflow_partial_signals(worker_info):
     # シグナルを送信
     await handle.signal("analysis_data_available", request)
 
-    # ワークフローがまだ実行中であることを直ちに確認
-    workflow_status = await handle.describe()
-    assert workflow_status.status == WorkflowExecutionStatus.RUNNING
+    with pytest.raises(WorkflowFailureError, match="Workflow execution failed"):
+        await handle.result()
 
 
 @pytest.mark.workflows([AnalysisWorkflow])
